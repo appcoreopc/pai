@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Copyright (c) Microsoft Corporation
 # All rights reserved.
 #
@@ -15,22 +17,18 @@
 # DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-kind: Service
-apiVersion: v1
-metadata:
-  name: dshuttle-master
-  labels:
-    app: dshuttle-master
-spec:
-  type: NodePort
-  ports:
-  - port: 19998
-    name: rpc
-  - port: 19999
-    name: web
-  - port: 20001
-    name: job-rpc
-  - port: 20002
-    name: job-web
-  selector:
-    app: dshuttle-master
+pushd $(dirname "$0") > /dev/null
+
+if kubectl get daemonset | grep -q "dshuttle-csi-daemon"; then
+    kubectl delete daemonset dshuttle-csi-daemon || exit $?
+fi
+
+if kubectl get csidriver | grep -q "alluxio"; then
+    kubectl delete csidriver alluxio || exit $?
+fi
+
+if kubectl get daemonset | grep -q "dshuttle-worker"; then
+    kubectl delete daemonset dshuttle-worker || exit $?
+fi
+
+popd > /dev/null

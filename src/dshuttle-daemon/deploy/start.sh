@@ -19,15 +19,13 @@
 
 pushd $(dirname "$0") > /dev/null
 
-PYTHONPATH="../../../deployment" python -m k8sPaiLibrary.maintaintool.update_resource \
-    --operation delete --resource statefulset --name dshuttle-sts
+kubectl apply --overwrite=true -f dshuttle-worker.yaml || exit $?
+kubectl apply --overwrite=true -f dshuttle-csi-driver.yaml || exit $?
+kubectl apply --overwrite=true -f dshuttle-csi-daemon.yaml || exit $?
 
-if kubectl get service | grep -q "dshuttle-service"; then
-    kubectl delete service dshuttle-service || exit $?
-fi
-
-if kubectl get configmap | grep -q "dshuttle-config"; then
-    kubectl delete configmap dshuttle-config || exit $?
-fi
+sleep 10
+# Wait until the service is ready.
+PYTHONPATH="../../../deployment" python -m k8sPaiLibrary.monitorTool.check_pod_ready_status -w -k app -v dshuttle-worker || exit $?
+PYTHONPATH="../../../deployment" python -m k8sPaiLibrary.monitorTool.check_pod_ready_status -w -k app -v dshuttle-csi-daemon || exit $?
 
 popd > /dev/null

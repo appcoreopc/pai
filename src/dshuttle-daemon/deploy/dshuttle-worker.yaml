@@ -2,8 +2,6 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: dshuttle-worker
-  labels:
-    app: dshuttle-worker
 spec:
   selector:
     matchLabels:
@@ -13,15 +11,6 @@ spec:
       labels:
         app: dshuttle-worker
     spec:
-      affinity:
-          nodeAffinity:
-            requiredDuringSchedulingIgnoredDuringExecution:
-              nodeSelectorTerms:
-              - matchExpressions:
-                - key: pai-worker
-                  operator: In
-                  values:
-                  - "true"
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
       securityContext:

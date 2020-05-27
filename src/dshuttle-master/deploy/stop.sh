@@ -19,11 +19,15 @@
 
 pushd $(dirname "$0") > /dev/null
 
-kubectl apply --overwrite=true -f dshuttle-config.yaml || exit $?
-kubectl apply --overwrite=true -f dshuttle-service.yaml || exit $?
-kubectl apply --overwrite=true -f dshuttle.yaml || exit $?
+PYTHONPATH="../../../deployment" python -m k8sPaiLibrary.maintaintool.update_resource \
+    --operation delete --resource statefulset --name dshuttle-master
 
-sleep 10
-# Wait until the service is ready.
+if kubectl get service | grep -q "dshuttle-service"; then
+    kubectl delete service dshuttle-service || exit $?
+fi
+
+if kubectl get configmap | grep -q "dshuttle-config"; then
+    kubectl delete configmap dshuttle-config || exit $?
+fi
 
 popd > /dev/null
